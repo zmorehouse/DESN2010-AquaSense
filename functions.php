@@ -933,13 +933,13 @@ function combined_onboarding_form_shortcode() {
     ?>
     <form method="post" id="onboarding-form">
         <h2>Water Usage Type</h2>
-        <p>Do you have a water limit or are you on the grid?</p>
+        <p>AquaSense can be used in two ways. If you are looking to track your water limit (e.g. you live off the grid, with a water tank), you can manually input the amount of water in your tank. Alternatively, if you are living on the grid and looking to reduce your monthly consumption, we will provide you with a sustainable monthly target to hit!</p>
         <label>
-            <input type="radio" name="water_usage_type" value="limit" required> I have a water limit
+            <input type="radio" name="water_usage_type" value="limit" required> I have a fixed water limit that I would like to keep track of. 
         </label><br>
-        <label>
-            <input type="radio" name="water_usage_type" value="grid" required> I'm on the grid
-        </label><br>
+        <label style="margin-top:15px;margin-bottom:35px;">
+            <input type="radio" name="water_usage_type" value="grid" required> I'm on the grid, and would like to reduce my water consumption.
+        </label>
 
         <div id="tank-capacity-section" style="display: none;">
             <h2>Tank Information</h2>
@@ -948,7 +948,8 @@ function combined_onboarding_form_shortcode() {
         </div>
 
         <div id="user-preferences-section" style="display: none;">
-            <h2>User Preferences</h2>
+            <h2>Calculate your monthly water budget!</h2>
+            <p> Answer these quick questions, and we'll suggest a sustainable amount to aim for each month </p>
             <label for="household_size">How many people are in your household?</label>
             <select id="household_size" name="household_size" required>
                 <option value="1">1</option>
@@ -963,30 +964,33 @@ function combined_onboarding_form_shortcode() {
                 <option value="moderate">Moderate</option>
                 <option value="liberal">Liberal</option>
             </select><br>
-        </div>
 
-        <div id="water-budget" style="display: none;">
-            <h3>Your Monthly Water Budget</h3>
+            <div id="water-budget" style="display: none;">
+            <h2>Your Monthly Water Budget</h2>
             <p id="water-budget-value"></p>
         </div>
+        </div>
+
+
 
         <h2>Device Assignment</h2>
+        <p> Finally, please fill out the below fields to register your new AquaSense device! Additional devices can be added in the 'My Appliances' section. </p>
         <label for="appliance_number">Appliance Number:</label>
         <input type="text" id="appliance_number" name="appliance_number" required><br>
-
-        <label for="appliance_type">Appliance Type:</label>
+        <div style="margin-top:10px; margin-bottom:10px;">
+        <label for="appliance_type" >Appliance Type:</label>
         <select id="appliance_type" name="appliance_type" required>
             <option value="washing_machine">Washing Machine</option>
             <option value="sink">Sink</option>
             <option value="shower">Shower</option>
             <option value="outdoor_tap">Outdoor Tap</option>
             <option value="bath">Bath</option>
-        </select><br>
-
+        </select>
+</div>
         <label for="nicename">Nickname:</label>
         <input type="text" id="nicename" name="nicename" required><br>
 
-        <input type="submit" value="Submit">
+        <input type="submit" value="Submit" style="margin-top:15px;">
     </form>
 
     <script>
@@ -1711,4 +1715,45 @@ function update_water_limit_shortcode() {
 
 add_shortcode('update_water_limit', 'update_water_limit_shortcode');
 
+
+// Function to add an overlay if the user is on a limit and on the /rewards page
+function add_rewards_page_overlay() {
+    // Check if we are on the /rewards page
+    if (is_page('rewards')) {
+        // Get the current user's ID
+        $user_id = get_current_user_id();
+        
+        // Fetch the user's water usage type from user metadata
+        $usage_type = get_user_meta($user_id, 'water_usage_type', true);
+
+        // If the user is on a limit, add the overlay
+        if ($usage_type === 'limit') {
+            echo "
+            <style>
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            .overlay p {
+                font-size: 24px;
+            }
+            </style>
+            <div class='overlay'>
+                <p>Sorry! As you are tracking tank water, you are not eligible for rewards. <br />If you are on the water grid, please update <a href='/settings' style='text-decoration:underline;color:white;'>your settings</a> accordingly.</p>
+            </div>";
+        }
+    }
+}
+add_action('wp_footer', 'add_rewards_page_overlay');
 
