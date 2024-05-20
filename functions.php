@@ -22,7 +22,7 @@ function register_user_name_shortcode() {
 }
 add_action('init', 'register_user_name_shortcode');
 
-# Redirection and login rules
+# Redirection and Login Rules
  function custom_login_redirect() {
     if (!is_user_logged_in()) {
         $login_page = home_url('/login/');
@@ -60,13 +60,11 @@ function logout_without_confirm($action, $result)
     }
 }
 
-
-# Arduino Ajax Calls
+# Arduino Ajax Calls to Log Data to Database
 add_action('wp_ajax_receive_data_from_arduino', 'receive_data_from_arduino');
 add_action('wp_ajax_nopriv_receive_data_from_arduino', 'receive_data_from_arduino');
 
 function receive_data_from_arduino() {
-    error_log("receive_data_from_arduino() function called");
 
     $received_value = $_POST['value'];
     $appliance_number = $_POST['appliance'];
@@ -102,8 +100,6 @@ function get_readable_appliance_type($type) {
     return isset($types[$type]) ? $types[$type] : $type;
 }
 
-
-
 # Device Assignment
 function device_assignment_form() {
     // Check if user is logged in
@@ -119,7 +115,7 @@ function device_assignment_form() {
     // Form HTML
     ob_start();
     ?>
-    <form method="post">
+    <form style="display:flex; flex-direction:column; flex-wrap:wrap; gap:10px;"method="post">
         <label for="appliance_number">Appliance Number:</label>
         <input type="text" id="appliance_number" name="appliance_number" required>
         
@@ -141,9 +137,6 @@ function device_assignment_form() {
     return ob_get_clean();
 }
 
-
-
-// Function to handle form submission
 function handle_device_assignment() {
     global $wpdb;
 
@@ -168,7 +161,6 @@ if ($existing_entry > 0) {
     return 'This device is already assigned to you.';
 }
 
-// Insert the new device assignment into wp_devices table
 $data = array(
     'appliance_number' => $appliance_number,
     'appliance_type' => $appliance_type,
@@ -202,8 +194,7 @@ function is_device_on($appliance_number) {
     return !empty($last_message);
 }
 
-
-// Function to display the user's devices in a table
+# Display Assigned Devices
 function display_user_devices() {
     // Check if the user is logged in
     if (!is_user_logged_in()) {
@@ -301,16 +292,12 @@ function display_user_devices() {
     return ob_get_clean();
 }
 
-
-// Register the shortcode [user_devices]
 function register_user_devices_shortcode() {
     add_shortcode('user_devices', 'display_user_devices');
 }
-
-// Hook into WordPress initialization
 add_action('init', 'register_user_devices_shortcode');
 
-// AJAX handler to remove a device
+# Device Remover
 function handle_remove_device() {
     global $wpdb;
 
@@ -348,7 +335,7 @@ function handle_remove_device() {
 
 add_action('wp_ajax_remove_device', 'handle_remove_device');
 
-// AJAX handler to download device data
+# Device Downloader
 function handle_download_device_data() {
     global $wpdb;
 
@@ -460,7 +447,7 @@ function handle_download_all_user_data() {
 
 add_action('wp_ajax_download_all_user_data', 'handle_download_all_user_data');
 add_action('wp_ajax_nopriv_download_all_user_data', 'handle_download_all_user_data');
-// Shortcode to output the download button
+
 function download_all_user_data_button() {
     // Check if the user is logged in
     if (!is_user_logged_in()) {
@@ -500,16 +487,13 @@ function download_all_user_data_button() {
     return ob_get_clean();
 }
 
-// Register the shortcode [download_all_user_data]
 function register_download_all_user_data_shortcode() {
     add_shortcode('download_all_user_data', 'download_all_user_data_button');
 }
 
-// Hook into WordPress initialization
 add_action('init', 'register_download_all_user_data_shortcode');
 
 
-# Water Shortcodes
 # Water Usage by Appliance
 // Function to fetch all appliance types registered to the current user
 function fetch_registered_appliance_types() {
@@ -593,6 +577,7 @@ function calculate_water_usage_percentages() {
 }
 
 // Function to generate the output HTML for water usage percentages
+// Function to generate the output HTML for water usage percentages
 function generate_water_usage_percentages_output($percentages) {
     $appliance_names = array(
         'washing_machine' => 'Washing Machine',
@@ -602,14 +587,22 @@ function generate_water_usage_percentages_output($percentages) {
         'bath' => 'Bath'
     );
 
+    $appliance_icons = array(
+        'washing_machine' => 'fa-solid fa-tshirt', // Replace with appropriate icon
+        'sink' => 'fa-solid fa-sink',
+        'shower' => 'fa-solid fa-shower',
+        'outdoor_tap' => 'fa-solid fa-faucet',
+        'bath' => 'fa-solid fa-bath'
+    );
+
     $output = '';
     foreach ($percentages as $appliance_type => $percentage) {
         $appliance_name = isset($appliance_names[$appliance_type]) ? $appliance_names[$appliance_type] : 'Appliance ' . $appliance_type;
-        $output .= "<p class='appliances'>$appliance_name: <span class='percentage' data-appliance='$appliance_type'>" . number_format($percentage, 2) . "%</span></p><br>";
+        $icon_class = isset($appliance_icons[$appliance_type]) ? $appliance_icons[$appliance_type] : 'fa-solid fa-question-circle'; // Default icon
+        $output .= "<p class='appliances'><i class='$icon_class'></i> $appliance_name: <span class='percentage' data-appliance='$appliance_type'>" . number_format($percentage, 2) . "%</span></p><br>";
     }
     return $output;
 }
-
 
 // Function to update water usage percentages via AJAX
 function update_water_usage_percentages() {
@@ -666,9 +659,7 @@ function water_usage_percentages_shortcode() {
 // Register shortcode
 add_shortcode('water_usage_percentages', 'water_usage_percentages_shortcode');
 
-
-
-# Daily Chart
+# Daily, Monthly and Yearly Charts
 // Function to fetch water data based on the specified period
 function fetch_water_data($period) {
     global $wpdb;
@@ -741,7 +732,6 @@ function fetch_water_data($period) {
     return $data;
 }
 
-// Function to output the water usage chart as a shortcode
 function output_water_usage_chart_shortcode($atts) {
     $atts = shortcode_atts(array(
         'period' => 'daily' // Default to daily
@@ -749,6 +739,9 @@ function output_water_usage_chart_shortcode($atts) {
 
     // Fetch water data for the specified period
     $data = fetch_water_data($atts['period']);
+
+    // Generate a unique ID for each chart
+    $chart_id = uniqid('waterUsageChart_');
 
     // Prepare data for Chart.js
     switch ($atts['period']) {
@@ -781,12 +774,12 @@ function output_water_usage_chart_shortcode($atts) {
     }
 
     // Prepare output HTML
-    $output = "<p class='usagecount'>You have used <span id='total_water_usage'>" . round((array_sum($data) / 1000), 2) . "</span> L of water $usage_text.</p>";
-    $output .= "<canvas id='{$atts['period']}WaterUsageChart' width='400' height='200'></canvas>";
+    $output = "<p class='usagecount'>You have used <span id='total_water_usage_{$chart_id}'>" . round((array_sum($data) / 1000), 2) . "</span> L of water $usage_text.</p>";
+    $output .= "<canvas id='{$chart_id}' width='400' height='200'></canvas>";
     $output .= "<script src='https://cdn.jsdelivr.net/npm/chart.js'></script>";
     $output .= "<script>";
     $output .= "document.addEventListener('DOMContentLoaded', function() {";
-    $output .= "    var ctx = document.getElementById('{$atts['period']}WaterUsageChart').getContext('2d');";
+    $output .= "    var ctx = document.getElementById('{$chart_id}').getContext('2d');";
     $output .= "    var myChart = new Chart(ctx, {";
     $output .= "        type: 'bar',"; // Change chart type to bar for daily data
     $output .= "        data: {";
@@ -822,7 +815,7 @@ function output_water_usage_chart_shortcode($atts) {
     $output .= "    });";
 
     // AJAX request to update chart data
-    $output .= "    function updateChart() {";
+    $output .= "    function updateChart_{$chart_id}() {";
     $output .= "        var xhr = new XMLHttpRequest();";
     $output .= "        xhr.onreadystatechange = function() {";
     $output .= "            if (xhr.readyState === XMLHttpRequest.DONE) {";
@@ -832,227 +825,43 @@ function output_water_usage_chart_shortcode($atts) {
     $output .= "                    var totalUsage = responseData.total_usage;";
     $output .= "                    myChart.data.datasets[0].data = newData;";
     $output .= "                    myChart.update();";
-    $output .= "                    document.getElementById('total_water_usage').innerText = totalUsage;";
+    $output .= "                    document.getElementById('total_water_usage_{$chart_id}').innerText = totalUsage;";
     $output .= "                } else {";
     $output .= "                    console.error('Error: ' + xhr.status);";
     $output .= "                }";
     $output .= "            }";
     $output .= "        };";
-    $output .= "        xhr.open('GET', '" . admin_url('admin-ajax.php') . "?action=update_water_usage_chart&period={$atts['period']}', true);";
+    $output .= "        xhr.open('GET', '" . admin_url('admin-ajax.php') . "?action=update_water_usage_chart&period={$atts['period']}&chart_id={$chart_id}', true);";
     $output .= "        xhr.send();";
     $output .= "    }";
 
     // Call updateChart function every 60 seconds
-    $output .= "    setInterval(updateChart, 60000);";
+    $output .= "    updateChart_{$chart_id}();"; // Initial call to update chart data
+    $output .= "    setInterval(updateChart_{$chart_id}, 5000);";
     $output .= "});";
     $output .= "</script>";
 
     return $output;
 }
 
-// Register shortcode for water usage chart
 function register_water_usage_chart_shortcode() {
     add_shortcode('water_usage_chart', 'output_water_usage_chart_shortcode');
 }
 
-// Hook into WordPress initialization
 add_action('init', 'register_water_usage_chart_shortcode');
 
-// AJAX handler to update chart data
 function update_water_usage_chart() {
-    // Fetch water data
     $period = isset($_GET['period']) ? $_GET['period'] : 'daily';
+    $chart_id = isset($_GET['chart_id']) ? sanitize_text_field($_GET['chart_id']) : '';
     $data = fetch_water_data($period);
 
-    // Return JSON response with updated data
-    wp_send_json(array("data" => $data, "total_usage" => round(array_sum($data) / 1000, 2)));
+    wp_send_json(array("data" => $data, "total_usage" => round(array_sum($data) / 1000, 2), "chart_id" => $chart_id));
 }
 
-// Register AJAX action
 add_action('wp_ajax_update_water_usage_chart', 'update_water_usage_chart');
 add_action('wp_ajax_nopriv_update_water_usage_chart', 'update_water_usage_chart');
 
-
-
-/*
-// Function to fetch water limit data from the database for the current user
-function fetch_water_limit_data() {
-    // Check if the user is logged in
-    if (!is_user_logged_in()) {
-        return null; // Return null if not logged in
-    }
-
-    // Get the current user
-    $current_user = wp_get_current_user();
-    $user_id = $current_user->ID;
-
-    // Connect to the database
-    global $wpdb;
-
-    // Query to get the time the limit was set for the current user
-    $limit_query = $wpdb->get_row($wpdb->prepare(
-        "SELECT updatetime, `limit` FROM wp_water_limits WHERE user_id = %d ORDER BY updatetime DESC LIMIT 1",
-        $user_id
-    ));
-
-    return $limit_query;
-}
-
-// Function to calculate and update water limit
-function calculate_updated_water_limit($limit_query) {
-    if ($limit_query) {
-        $limit_time = $limit_query->updatetime;
-        $original_limit = $limit_query->limit;
-
-        // Connect to the database
-        global $wpdb;
-
-        // Query to get the sum of values past the limit time from wp_arduino_data
-        $sum_query = $wpdb->prepare("SELECT SUM(value) AS sum_values 
-                                     FROM wp_arduino_data 
-                                     WHERE received_at > %s", $limit_time);
-        $sum_result = $wpdb->get_row($sum_query);
-
-        // Calculate the updated limit
-        $updated_limit = $original_limit - $sum_result->sum_values;
-
-        return $updated_limit;
-    } else {
-        return null;
-    }
-}
-
-// Function to generate the output HTML for updated water limit
-function generate_updated_water_limit_output($updated_limit) {
-    if ($updated_limit !== null) {
-        // Format the limit for display purposes to 2 decimal places
-        $formatted_limit = number_format($updated_limit / 1000, 2);
-        
-        // Prepare output
-        $output = '<p class="leftintank">' . $formatted_limit . 'L </p>';
-        return $output;
-    } else {
-        return '<p>0</p>';
-    }
-}
-
-// Function to update water limit via AJAX
-function update_water_limit() {
-    // Fetch water limit data
-    $limit_query = fetch_water_limit_data();
-
-    // Calculate updated water limit
-    $updated_limit = calculate_updated_water_limit($limit_query);
-
-    // Update water limit in the database if it's not null
-    if ($updated_limit !== null) {
-        global $wpdb;
-        $current_user = wp_get_current_user();
-        $user_id = $current_user->ID;
-        
-        $wpdb->update(
-            'wp_water_limits',
-            array('limit' => $updated_limit),
-            array('user_id' => $user_id),
-            array('%d'),
-            array('%d')
-        );
-    }
-
-    // Generate output HTML for updated water limit
-    $output = generate_updated_water_limit_output($updated_limit);
-
-    // Return JSON response with updated water limit HTML
-    wp_send_json(array("output" => $output));
-}
-
-// Register AJAX action
-add_action('wp_ajax_update_water_limit', 'update_water_limit');
-add_action('wp_ajax_nopriv_update_water_limit', 'update_water_limit');
-
-// Function to output water limit shortcode
-function update_water_limit_shortcode() {
-    // Fetch water limit data
-    $limit_query = fetch_water_limit_data();
-
-    // Calculate updated water limit
-    $updated_limit = calculate_updated_water_limit($limit_query);
-
-    // Generate output HTML for updated water limit
-    $output = generate_updated_water_limit_output($updated_limit);
-
-    // Add JavaScript for real-time updating
-    $output .= "<script>";
-    $output .= "function updateWaterLimit() {";
-    $output .= "    var xhr = new XMLHttpRequest();";
-    $output .= "    xhr.onreadystatechange = function() {";
-    $output .= "        if (xhr.readyState === XMLHttpRequest.DONE) {";
-    $output .= "            if (xhr.status === 200) {";
-    $output .= "                var responseData = JSON.parse(xhr.responseText);";
-    $output .= "                document.getElementById('water_limit_output').innerHTML = responseData.output;";
-    $output .= "            } else {";
-    $output .= "                console.error('Error: ' + xhr.status);";
-    $output .= "            }";
-    $output .= "        }";
-    $output .= "    };";
-    $output .= "    xhr.open('GET', '" . admin_url('admin-ajax.php') . "?action=update_water_limit', true);";
-    $output .= "    xhr.send();";
-    $output .= "}";
-    $output .= "setInterval(updateWaterLimit, 10000);"; // Update every 10 seconds
-    $output .= "updateWaterLimit();"; // Initial call to update immediately
-    $output .= "</script>";
-
-    return '<div id="water_limit_output">' . $output . '</div>';
-}
-
-// Register shortcode
-add_shortcode('update_water_limit', 'update_water_limit_shortcode');
-*/
-// Function to output the water limit update form for the current user
-function water_limit_update_form_shortcode() {
-    // Check if the user is logged in
-    if (!is_user_logged_in()) {
-        return 'You need to be logged in to update the water limit.';
-    }
-
-    // Get the current user
-    $current_user = wp_get_current_user();
-    $user_id = $current_user->ID;
-
-    // Check if the form is submitted
-    if (isset($_POST['update_limit'])) {
-        // Connect to the database
-        global $wpdb;
-
-        // Sanitize and retrieve the submitted limit
-        $new_limit = intval($_POST['new_limit']);
-
-        // Insert new water limit for the current user into the database
-        $wpdb->insert(
-            'wp_water_limits',
-            array(
-                'limit' => $new_limit,
-                'user_id' => $user_id,
-                'updatetime' => current_time('mysql')
-            ),
-            array('%d', '%d', '%s')
-        );
-    }
-
-    // Form HTML
-    $form_html = '
-    <form class="test" method="post" >
-        <label for="new_limit"></label>
-        <input type="number" id="new_limit" name="new_limit" required>
-        <input type="submit" name="update_limit" value="Update Limit" style="margin-top:15px;">
-    </form>
-    ';
-
-    return $form_html;
-}
-
-// Register shortcode for water limit update form
-add_shortcode('water_limit_update_form', 'water_limit_update_form_shortcode');
+# Onboarding
 function combined_onboarding_form_shortcode() {
     if (!is_user_logged_in()) {
         return 'You need to be logged in to complete onboarding.';
@@ -1102,24 +911,21 @@ function combined_onboarding_form_shortcode() {
             ));
         }
 
-        // Calculate the water budget in liters
-        $monthly_budget_liters = calculate_water_budget($household_size, $water_conservation);
-
-        // Convert the budget to milliliters (mL)
-        $monthly_budget_milliliters = $monthly_budget_liters * 1000;
+        // Determine the water limit
+        $limit_value = $usage_type === 'limit' ? $tank_capacity * 1000 : calculate_water_budget($household_size, $water_conservation) * 1000;
 
         // Insert or update the wp_water_limits table with the user's limit
         $wpdb->insert('wp_water_limits', array(
             'user_id' => $user_id,
             'updatetime' => current_time('mysql'),
-            'limit' => $monthly_budget_milliliters
+            'limit' => $limit_value
         ));
 
         // Mark onboarding as complete
         update_user_meta($user_id, 'onboarding_complete', true);
 
         // Redirect to a success page
-        wp_redirect(add_query_arg('budget', $monthly_budget_liters, home_url('/dashboard')));
+        wp_redirect(add_query_arg('budget', $limit_value / 1000, home_url('/dashboard')));
         exit;
     }
 
@@ -1160,9 +966,9 @@ function combined_onboarding_form_shortcode() {
         </div>
 
         <div id="water-budget" style="display: none;">
-        <h3>Your Monthly Water Budget</h3>
-        <p id="water-budget-value"></p>
-    </div>
+            <h3>Your Monthly Water Budget</h3>
+            <p id="water-budget-value"></p>
+        </div>
 
         <h2>Device Assignment</h2>
         <label for="appliance_number">Appliance Number:</label>
@@ -1182,8 +988,6 @@ function combined_onboarding_form_shortcode() {
 
         <input type="submit" value="Submit">
     </form>
-
-
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1305,8 +1109,6 @@ function calculate_water_budget($household_size, $water_conservation) {
     return $monthly_budget;
 }
 
-
-
 function redirect_to_onboarding() {
     if (is_user_logged_in()) {
         $current_user = wp_get_current_user();
@@ -1321,246 +1123,236 @@ function redirect_to_onboarding() {
     }
 }
 add_action('template_redirect', 'redirect_to_onboarding');
-// Function to fetch water limit data from the database for the current user
-function fetch_water_limit_data() {
-    // Check if the user is logged in
-    if (!is_user_logged_in()) {
-        return null; // Return null if not logged in
-    }
 
-    // Get the current user
-    $current_user = wp_get_current_user();
-    $user_id = $current_user->ID;
-
-    // Connect to the database
+# Rewards Data
+// Function to fetch the user's water limit
+function fetch_user_limit($user_id) {
     global $wpdb;
-
-    // Query to get the time the limit was set for the current user
-    $limit_query = $wpdb->get_row($wpdb->prepare(
-        "SELECT updatetime, `limit` FROM wp_water_limits WHERE user_id = %d ORDER BY updatetime DESC LIMIT 1",
+    $limit = $wpdb->get_var($wpdb->prepare(
+        "SELECT `limit` FROM `wp_water_limits` WHERE `user_id` = %d ORDER BY `updatetime` DESC LIMIT 1",
         $user_id
     ));
-
-    // Get the user's water usage type
-    $usage_type = get_user_meta($user_id, 'water_usage_type', true);
-
-    return (object) array_merge((array) $limit_query, ['usage_type' => $usage_type]);
+    return $limit;
 }
 
-// Function to calculate updated water limit based on usage type
-function calculate_updated_water_limit($limit_query) {
-    if ($limit_query) {
-        $limit_time = $limit_query->updatetime;
-        $original_limit = $limit_query->limit;
-        $usage_type = $limit_query->usage_type;
+// Shortcode function to output the user's water limit
+function user_limit_shortcode($atts) {
+    // Get the current user's ID
+    $user_id = get_current_user_id();
+    
+    // Fetch the user's water limit
+    $limit = fetch_user_limit($user_id);
 
-        // Connect to the database
-        global $wpdb;
-
-        if ($usage_type == 'grid') {
-            // Get the current date and the first day of the current month
-            $current_date = date('Y-m-d');
-            $first_day_of_month = date('Y-m-01');
-
-            // Query to get the sum of values for the current month from wp_arduino_data
-            $sum_query = $wpdb->prepare("SELECT SUM(value) AS sum_values 
-                                         FROM wp_arduino_data 
-                                         WHERE received_at >= %s AND received_at <= %s", 
-                                         $first_day_of_month, $current_date);
-        } else {
-            // Query to get the sum of values past the limit time from wp_arduino_data
-            $sum_query = $wpdb->prepare("SELECT SUM(value) AS sum_values 
-                                         FROM wp_arduino_data 
-                                         WHERE received_at > %s", $limit_time);
-        }
-
-        $sum_result = $wpdb->get_row($sum_query);
-
-        // Calculate the updated limit
-        $updated_limit = $original_limit - $sum_result->sum_values;
-
-        return $updated_limit;
-    } else {
-        return null;
+    $litrelimit = $limit / 1000;
+    
+    // If no limit is found, return a default message
+    if ($limit === null) {
+        return 'No water limit found for this user.';
     }
+    
+    // Return the user's water limit
+    return $litrelimit . ' L';
 }
 
-// Function to generate the output HTML for updated water limit
-function generate_updated_water_limit_output($updated_limit, $usage_type) {
-    if ($updated_limit !== null) {
-        // Format the limit for display purposes to 2 decimal places
-        $formatted_limit = number_format($updated_limit / 1000, 2);
+// Register the shortcode
+add_shortcode('user_limit', 'user_limit_shortcode');
 
-        // Determine the appropriate message based on the usage type
-        if ($usage_type == 'grid') {
-            $message = $updated_limit >= 0 
-                ? "You have {$formatted_limit}L left in your budget this month."
-                : "You are " . abs($formatted_limit) . "L over budget this month.";
-        } else {
-            $message = "You have {$formatted_limit}L left in your tank.";
-        }
-
-        // Prepare output
-        $output = '<p class="leftintank">' . $message . '</p>';
-        $output .= '<script>
-            document.addEventListener("DOMContentLoaded", function() {
-                var usageType = "' . $usage_type . '";
-                var rewardsButton = document.querySelector(".rewards");
-                var topupButton = document.querySelector(".topup");
-
-                if (usageType === "grid") {
-                    rewardsButton.style.display = "block";
-                    topupButton.style.display = "none";
-                } else {
-                    rewardsButton.style.display = "none";
-                    topupButton.style.display = "block";
-                }
-            });
-        </script>';
-        return $output;
-    } else {
-        return '<p>0</p>';
-    }
-}
-
-// Function to update water limit via AJAX
-function update_water_limit() {
-    // Fetch water limit data
-    $limit_query = fetch_water_limit_data();
-
-    // Calculate updated water limit
-    $updated_limit = calculate_updated_water_limit($limit_query);
-
-    // Generate output HTML for updated water limit
-    $output = generate_updated_water_limit_output($updated_limit, $limit_query->usage_type);
-
-    // Return JSON response with updated water limit HTML
-    wp_send_json(array("output" => $output));
-}
-
-// Register AJAX action
-add_action('wp_ajax_update_water_limit', 'update_water_limit');
-add_action('wp_ajax_nopriv_update_water_limit', 'update_water_limit');
-
-// Function to output water limit shortcode
-function update_water_limit_shortcode() {
-    // Fetch water limit data
-    $limit_query = fetch_water_limit_data();
-
-    // Calculate updated water limit
-    $updated_limit = calculate_updated_water_limit($limit_query);
-
-    // Generate output HTML for updated water limit
-    $output = generate_updated_water_limit_output($updated_limit, $limit_query->usage_type);
-
-    // Add JavaScript for real-time updating
-    $output .= "<script>
-        function updateWaterLimit() {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        var responseData = JSON.parse(xhr.responseText);
-                        document.getElementById('water_limit_output').innerHTML = responseData.output;
-                    } else {
-                        console.error('Error: ' + xhr.status);
-                    }
-                }
-            };
-            xhr.open('GET', '" . admin_url('admin-ajax.php') . "?action=update_water_limit', true);
-            xhr.send();
-        }
-        setInterval(updateWaterLimit, 10000); // Update every 10 seconds
-        updateWaterLimit(); // Initial call to update immediately
-    </script>";
-
-    return '<div id="water_limit_output">' . $output . '</div>';
-}
-
-// Register shortcode
-add_shortcode('update_water_limit', 'update_water_limit_shortcode');
-// Function to fetch user rewards data from the database for the current user
-function fetch_user_rewards_data() {
-    // Check if the user is logged in
-    if (!is_user_logged_in()) {
-        return null; // Return null if not logged in
-    }
-
-    // Get the current user
-    $current_user = wp_get_current_user();
-    $user_id = $current_user->ID;
-
-    // Get the user's water usage type
-    $usage_type = get_user_meta($user_id, 'water_usage_type', true);
-
-    // Get the user's water limit
-    global $wpdb;
-    $limit_query = $wpdb->get_row($wpdb->prepare(
-        "SELECT updatetime, `limit` FROM wp_water_limits WHERE user_id = %d ORDER BY updatetime DESC LIMIT 1",
-        $user_id
-    ));
-
-    return (object) array_merge((array) $limit_query, ['usage_type' => $usage_type, 'user_id' => $user_id]);
-}
-
-// Function to fetch water usage data for the last 3 months
-function fetch_recent_water_usage_data($user_id) {
+// Function to fetch recent water usage data for the user
+function fetch_recent_water_usage_data($user_id, $start_date, $end_date) {
     global $wpdb;
 
+    // Prepare the data array
     $usage_data = [];
-    for ($i = 0; $i < 3; $i++) {
-        $month = date('Y-m', strtotime("-$i months"));
-        $sum_query = $wpdb->prepare(
-            "SELECT SUM(value) AS sum_values FROM wp_arduino_data 
-             WHERE user_id = %d AND DATE_FORMAT(received_at, '%%Y-%%m') = %s",
-            $user_id, $month
-        );
-        $sum_result = $wpdb->get_var($sum_query);
-        $usage_data[$month] = $sum_result ? $sum_result : 0;
+
+    // Calculate the months between start_date and end_date
+    $current_date = $start_date;
+    while (strtotime($current_date) <= strtotime($end_date)) {
+        $usage_data[date('Y-m', strtotime($current_date))] = 0;
+        $current_date = date('Y-m-d', strtotime($current_date . ' +1 month'));
+    }
+
+    // Query to retrieve water usage data for the specified period
+    $query = $wpdb->prepare("
+        SELECT SUM(ad.value) AS total_usage, DATE_FORMAT(ad.received_at, '%%Y-%%m') AS month
+        FROM wp_arduino_data ad
+        INNER JOIN wp_devices d ON ad.appliance_no = d.appliance_number
+        WHERE ad.received_at BETWEEN %s AND %s AND d.user_id = %d
+        GROUP BY month
+    ", $start_date, $end_date, $user_id);
+
+    $results = $wpdb->get_results($query);
+
+    // Fill in the usage data array with values from the database
+    foreach ($results as $result) {
+        $usage_data[$result->month] = $result->total_usage;
     }
 
     return $usage_data;
 }
 
-// Function to generate the output HTML for monthly usage rewards
-function generate_rewards_output($user_data, $usage_data) {
-    if ($user_data->usage_type == 'grid') {
-        $output = '<h3>Your Monthly Water Usage and Rewards</h3>';
 
-        foreach ($usage_data as $month => $usage) {
-            $budget_liters = $user_data->limit / 1000;
-            $usage_liters = $usage / 1000;
-            $month_name = date('F Y', strtotime($month));
 
-            if ($usage_liters <= $budget_liters) {
-                $output .= "<p>{$month_name}: You used {$usage_liters}L out of {$budget_liters}L. Eligible for reward!</p>";
-            } else {
-                $over_budget = $usage_liters - $budget_liters;
-                $output .= "<p>{$month_name}: You used {$usage_liters}L out of {$budget_liters}L. Sorry, you went over your water budget by {$over_budget}L.</p>";
-            }
-        }
-    } else {
-        $output = '<p>Sorry, you\'re not eligible for rewards! To change your preferences, please go to the settings page.</p>';
-    }
 
-    return $output;
-}
-
-// Shortcode to display monthly usage rewards
-function monthly_usage_rewards_shortcode() {
+// Shortcode to display previous 3 months rewards
+function previous_rewards_shortcode() {
     $user_data = fetch_user_rewards_data();
-
     if ($user_data) {
-        $usage_data = fetch_recent_water_usage_data($user_data->user_id);
-
-        return generate_rewards_output($user_data, $usage_data);
+        $start_date = date('Y-m-01', strtotime('-3 month'));
+        $end_date = date('Y-m-t', strtotime('-1 month'));
+        $usage_data = fetch_recent_water_usage_data($user_data->user_id, $start_date, $end_date);
+        return generate_previous_rewards_output($user_data, $usage_data);
     } else {
         return '<p>You need to be logged in to view your rewards.</p>';
     }
 }
+add_shortcode('previous_rewards', 'previous_rewards_shortcode');
 
-add_shortcode('monthly_usage_rewards', 'monthly_usage_rewards_shortcode');
+// Function to generate the previous rewards output based on the user's water usage data
+function generate_previous_rewards_output($user_data, $usage_data) {
+    $output = '<div class="rewards-container">'; // Add parent div here
 
+    foreach ($usage_data as $month => $usage) {
+        $budget_liters = $user_data->limit / 1000;
+        $usage_liters = $usage / 1000;
+        $month_name = date('F Y', strtotime($month));
+
+        // Past months
+        if ($usage_liters <= $budget_liters) {
+            $output .= "<div class='rewards rewards-green'><h3>{$month_name}</h3>
+            <p>You used {$usage_liters}L out of {$budget_liters}L. Good job!</p></div>";
+        } else {
+            $over_budget = $usage_liters - $budget_liters;
+            $output .= "<div class='rewards rewards-red'><h3>{$month_name}</h3>
+            <p>You used {$usage_liters}L out of {$budget_liters}L. Sorry, you went over your water budget by {$over_budget}L.</p></div>";
+        }
+    }
+
+    $output .= '</div>'; // Close parent div here
+    return $output;
+}
+
+
+// Shortcode to display upcoming 3 months rewards
+function upcoming_rewards_shortcode() {
+    $user_data = fetch_user_rewards_data();
+    if ($user_data) {
+        $start_date = date('Y-m-01', strtotime('+1 month'));
+        $end_date = date('Y-m-t', strtotime('+3 month'));
+        $usage_data = fetch_recent_water_usage_data($user_data->user_id, $start_date, $end_date);
+        return generate_upcoming_rewards_output($user_data, $usage_data);
+    } else {
+        return '<p>You need to be logged in to view your rewards.</p>';
+    }
+}
+add_shortcode('upcoming_rewards', 'upcoming_rewards_shortcode');
+
+// Function to generate the upcoming rewards output based on the user's water usage data
+function generate_upcoming_rewards_output($user_data, $usage_data) {
+    $output = '<div class="rewards-container">'; // Add parent div here
+
+    foreach ($usage_data as $month => $usage) {
+        $budget_liters = $user_data->limit / 1000;
+        $month_name = date('F Y', strtotime($month));
+
+        // Future months
+        $output .= "<div class='rewards rewards-grey'><h3>{$month_name}</h3>
+        <p>Upcoming month. Stay within your limit of {$budget_liters}L to earn rewards!</p></div>";
+    }
+
+    $output .= '</div>'; // Close parent div here
+    return $output;
+}
+
+// Shortcode to display current month progress
+// Shortcode to display current month progress
+function current_month_rewards_shortcode() {
+    $user_data = fetch_user_rewards_data();
+    if ($user_data) {
+        $start_date = date('Y-m-01');
+        $end_date = date('Y-m-t');
+        $usage_data = fetch_recent_water_usage_data($user_data->user_id, $start_date, $end_date);
+        return generate_current_month_rewards_output($user_data, $usage_data);
+    } else {
+        return '<p>You need to be logged in to view your rewards.</p>';
+    }
+}
+add_shortcode('current_month_rewards', 'current_month_rewards_shortcode');
+
+// Function to generate the current month rewards output based on the user's water usage data
+function generate_current_month_rewards_output($user_data, $usage_data) {
+    $output = '<div class="rewards-container">'; // Add parent div here
+
+    foreach ($usage_data as $month => $usage) {
+        $budget_liters = $user_data->limit / 1000;
+        $usage_liters = $usage / 1000;
+        $nice_liters = round(($budget_liters - $usage_liters), 2);
+        $month_name = date('F Y', strtotime($month));
+
+        // Current month
+        if ($month === date('Y-m')) {
+            if ($usage_liters <= $budget_liters) {
+                $output .= "
+
+                <div class='rewards rewards-current'><script src='https://cdn.lordicon.com/lordicon.js'></script>
+                <h2 style='color:white; text-align:center; font-size:50px;'> This Month's Reward </h2><div> <div style='width:100%; display:flex; justify-content:center;'><lord-icon
+                src='https://cdn.lordicon.com/rqdzxkkr.json'
+                trigger='hover'
+                stroke='bold'
+                colors='primary:#ffffff,secondary:#ffffff'
+                style='width:150px;height:150px;padding-top:15px;'>
+            </lord-icon></div><br/> <h3 style='font-size:50px; text-align:center;'>You're on track!</h3>
+                <h2 style='font-size:75px; text-align:center; color:white;'> {$nice_liters}L Left </h2>
+                <p style='text-align:center;'>Good job, you have only used {$usage_liters}L out of {$budget_liters}L! <br/> Stay on track to receive a $30 water rebate at the end of the month.</p></div>
+                <h3 style='text-align:center;'>{$month_name}</h3>
+                </div>";
+            } else {
+                $over_budget = $usage_liters - $budget_liters;
+                $nice_budget = round($over_budget, 2);
+                $output .= "
+
+                <div class='rewards rewards-current'><script src='https://cdn.lordicon.com/lordicon.js'></script>
+                <h2 style='color:white; text-align:center; font-size:50px;'> This Month's Reward </h2><div> <div style='width:100%; display:flex; justify-content:center;'><lord-icon
+                src='https://cdn.lordicon.com/xzybfbcm.json'
+                trigger='hover'
+                stroke='bold'
+                colors='primary:#ffffff,secondary:#ffffff'
+                style='width:150px;height:150px;padding-top:15px;'>
+            </lord-icon></div><br/> <h3 style='font-size:50px; text-align:center;'>You've gone over budget!</h3>
+                <h2 style='font-size:75px; text-align:center; color:white;'> {$nice_budget}L Over </h2>
+                <p style='text-align:center;'>You're over budget this month! You wont be elligble for a reward.  <br> Try again next month to receive a water rebate!</p></div>
+                <h3 style='text-align:center;'>{$month_name}</h3>
+                </div>";
+
+                $output .= "<div class='rewards rewards-current'><h3>{$month_name}</h3>";
+
+            }
+        }
+    }
+
+    $output .= '</div>'; // Close parent div here
+    return $output;
+}
+
+function fetch_user_rewards_data() {
+    $user_id = get_current_user_id();
+
+    // Fetch the latest water limit for the user
+    $limit = fetch_user_limit($user_id);
+
+    // Fetch the user's water usage type from user metadata
+    $usage_type = get_user_meta($user_id, 'water_usage_type', true);
+
+    // Return user data with the latest limit and usage type
+    return (object) [
+        'user_id' => $user_id,
+        'usage_type' => $usage_type,
+        'limit' => $limit,
+    ];
+}
+
+
+
+# User Settings
 function user_settings_form_shortcode() {
     if (!is_user_logged_in()) {
         return 'You need to be logged in to update your settings.';
@@ -1587,18 +1379,15 @@ function user_settings_form_shortcode() {
             update_user_meta($user_id, 'tank_capacity', $tank_capacity);
         }
 
-        // Calculate the water budget in liters
-        $monthly_budget_liters = calculate_water_budget($household_size, $water_conservation);
-
-        // Convert the budget to milliliters (mL)
-        $monthly_budget_milliliters = $monthly_budget_liters * 1000;
+        // Determine the water limit
+        $limit_value = $usage_type === 'limit' ? $tank_capacity * 1000 : calculate_water_budget($household_size, $water_conservation) * 1000;
 
         // Insert or update the wp_water_limits table with the user's limit
         global $wpdb;
-        $wpdb->insert('wp_water_limits', array(
+        $wpdb->replace('wp_water_limits', array(
             'user_id' => $user_id,
             'updatetime' => current_time('mysql'),
-            'limit' => $monthly_budget_milliliters
+            'limit' => $limit_value
         ));
 
         // Redirect to a success page
@@ -1608,22 +1397,24 @@ function user_settings_form_shortcode() {
 
     ob_start();
     ?>
+    
     <form method="post" id="user-settings-form">
-        <h2>Water Usage Type</h2>
-        <p>Do you have a water limit or are you on the grid?</p>
-        <label>
-            <input type="radio" name="water_usage_type" value="limit" required <?php checked(get_user_meta($user_id, 'water_usage_type', true), 'limit'); ?>> I have a water limit
-        </label><br>
-        <label>
-            <input type="radio" name="water_usage_type" value="grid" required <?php checked(get_user_meta($user_id, 'water_usage_type', true), 'grid'); ?>> I'm on the grid
-        </label><br>
+        <div id="usagetype">
+            <h2>Water Usage Type</h2>
+            <p>Do you have a water limit or are you on the grid?</p>
+            <label>
+                <input type="radio" name="water_usage_type" value="limit" required <?php checked(get_user_meta($user_id, 'water_usage_type', true), 'limit'); ?>> I have a water limit
+            </label><br>
+            <label>
+                <input type="radio" name="water_usage_type" value="grid" required <?php checked(get_user_meta($user_id, 'water_usage_type', true), 'grid'); ?>> I'm on the grid
+            </label><br>
 
-        <div id="tank-capacity-section" style="display: none;">
-            <h2>Tank Information</h2>
-            <label for="tank_capacity">How much water is currently in your tank (L)?</label>
-            <input type="number" id="tank_capacity" name="tank_capacity" min="0" value="<?php echo esc_attr(get_user_meta($user_id, 'tank_capacity', true)); ?>"><br>
+            <div id="tank-capacity-section" style="display: none;">
+                <h2>Tank Information</h2>
+                <label for="tank_capacity">How much water is currently in your tank (L)?</label>
+                <input type="number" id="tank_capacity" name="tank_capacity" min="0" value="<?php echo esc_attr(get_user_meta($user_id, 'tank_capacity', true)); ?>"><br>
+            </div>
         </div>
-
         <div id="user-preferences-section" style="display: none;">
             <h2>User Preferences</h2>
             <label for="household_size">How many people are in your household?</label>
@@ -1643,7 +1434,7 @@ function user_settings_form_shortcode() {
         </div>
 
         <div id="water-budget" style="display: none;">
-            <h3>Your Monthly Water Budget</h3>
+            <h2>Your Monthly Water Budget</h2>
             <p id="water-budget-value"></p>
         </div>
 
@@ -1735,3 +1526,189 @@ function user_settings_form_shortcode() {
 }
 
 add_shortcode('user_settings_form', 'user_settings_form_shortcode');
+
+# Water Limit Stuff
+// Function to output the water limit update form for the current user
+function water_limit_update_form_shortcode() {
+    if (!is_user_logged_in()) {
+        return 'You need to be logged in to update the water limit.';
+    }
+
+    $current_user = wp_get_current_user();
+    $user_id = $current_user->ID;
+
+    if (isset($_POST['update_limit'])) {
+        global $wpdb;
+        $new_limit = intval($_POST['new_limit']);
+
+        $wpdb->insert(
+            'wp_water_limits',
+            array(
+                'limit' => $new_limit,
+                'user_id' => $user_id,
+                'updatetime' => current_time('mysql')
+            ),
+            array('%d', '%d', '%s')
+        );
+    }
+
+    $form_html = '
+    <form class="test" method="post" >
+        <label for="new_limit"></label>
+        <input type="number" id="new_limit" name="new_limit" required>
+        <input type="submit" name="update_limit" value="Update Limit" style="margin-top:15px;">
+    </form>
+    ';
+
+    return $form_html;
+}
+
+add_shortcode('water_limit_update_form', 'water_limit_update_form_shortcode');
+
+function fetch_water_limit_data() {
+    if (!is_user_logged_in()) {
+        return null;
+    }
+
+    $current_user = wp_get_current_user();
+    $user_id = $current_user->ID;
+
+    global $wpdb;
+
+    $limit_query = $wpdb->get_row($wpdb->prepare(
+        "SELECT updatetime, `limit`, user_id FROM wp_water_limits WHERE user_id = %d ORDER BY updatetime DESC LIMIT 1",
+        $user_id
+    ));
+
+    $usage_type = get_user_meta($user_id, 'water_usage_type', true);
+
+    return (object) array_merge((array) $limit_query, ['usage_type' => $usage_type]);
+}
+
+
+// Function to calculate updated water limit based on usage type
+function calculate_updated_water_limit($limit_query) {
+    if ($limit_query) {
+        $limit_time = $limit_query->updatetime;
+        $original_limit = $limit_query->limit;
+        $usage_type = $limit_query->usage_type;
+        $user_id = $limit_query->user_id;
+
+        global $wpdb;
+
+        if ($usage_type == 'grid') {
+            $current_date = current_time('mysql'); // Correct format for MySQL datetime
+            $first_day_of_month = date('Y-m-01 00:00:00'); // Correct format for MySQL datetime
+
+            $query = $wpdb->prepare(
+                "SELECT SUM(ad.value) AS sum_values
+                 FROM wp_arduino_data ad
+                 INNER JOIN wp_devices d ON ad.appliance_no = d.appliance_number
+                 WHERE ad.received_at >= %s AND ad.received_at <= %s AND d.user_id = %d",
+                $first_day_of_month, $current_date, $user_id
+            );
+
+            $sum_result = $wpdb->get_row($query);
+        } else {
+            $sum_result = $wpdb->get_row($wpdb->prepare(
+                "SELECT SUM(ad.value) AS sum_values 
+                 FROM wp_arduino_data ad
+                 INNER JOIN wp_devices d ON ad.appliance_no = d.appliance_number
+                 WHERE ad.received_at > %s AND d.user_id = %d",
+                $limit_time, $user_id
+            ));
+        }
+
+        $sum_values = $sum_result ? $sum_result->sum_values : 0;
+        $updated_limit = $original_limit - $sum_values;
+        return $updated_limit;
+    } else {
+        return null;
+    }
+}
+
+
+
+function generate_updated_water_limit_output($updated_limit, $usage_type) {
+    if ($updated_limit !== null) {
+        $formatted_limit = number_format($updated_limit / 1000, 2);
+
+        if ($usage_type == 'grid') {
+            $message = $updated_limit >= 0 
+                ? "You have {$formatted_limit}L left in your budget this month."
+                : "You are " . abs($formatted_limit) . "L over budget this month.";
+        } else {
+            $message = "You have {$formatted_limit}L left in your tank.";
+        }
+
+                // Prepare output
+        $output = '<h2 class="leftintank">' . $formatted_limit . 'L</h2>';
+        $output .= '<p class="tankmsg">' . $message . '</p>';
+        $output .= '<script>
+
+            document.addEventListener("DOMContentLoaded", function() {
+                var usageType = "' . $usage_type . '";
+                var rewardsButton = document.querySelector(".rewardsbutton");
+                var topupButton = document.querySelector(".topup");
+
+                if (usageType === "grid") {
+                    if (rewardsButton) rewardsButton.style.display = "block";
+                    if (topupButton) topupButton.style.display = "none";
+                } else {
+                    if (rewardsButton) rewardsButton.style.display = "none";
+                    if (topupButton) topupButton.style.display = "block";
+                }
+            });
+        </script>';
+        return $output;
+    } else {
+        return '<p>0</p>';
+    }
+}
+
+
+
+// Function to update water limit via AJAX
+function update_water_limit() {
+    $limit_query = fetch_water_limit_data();
+    $updated_limit = calculate_updated_water_limit($limit_query);
+    $output = generate_updated_water_limit_output($updated_limit, $limit_query->usage_type);
+    wp_send_json(array("output" => $output));
+}
+
+add_action('wp_ajax_update_water_limit', 'update_water_limit');
+add_action('wp_ajax_nopriv_update_water_limit', 'update_water_limit');
+
+
+// Function to output water limit shortcode
+function update_water_limit_shortcode() {
+    $limit_query = fetch_water_limit_data();
+    $updated_limit = calculate_updated_water_limit($limit_query);
+    $output = generate_updated_water_limit_output($updated_limit, $limit_query->usage_type);
+
+    $output .= "<script>
+        function updateWaterLimit() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var responseData = JSON.parse(xhr.responseText);
+                        document.getElementById('water_limit_output').innerHTML = responseData.output;
+                    } else {
+                        console.error('Error: ' + xhr.status);
+                    }
+                }
+            };
+            xhr.open('GET', '" . admin_url('admin-ajax.php') . "?action=update_water_limit', true);
+            xhr.send();
+        }
+        setInterval(updateWaterLimit, 10000);
+        updateWaterLimit();
+    </script>";
+
+    return '<div id="water_limit_output">' . $output . '</div>';
+}
+
+add_shortcode('update_water_limit', 'update_water_limit_shortcode');
+
+
